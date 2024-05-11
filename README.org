@@ -1,0 +1,20 @@
+* urbandictionary
+
+Access the urbandictionary.com API from Erlang/OTP.
+
+*Warning: This API is undocumented and probably meant for internal use only. Proceed with caution.*
+
+** rebar3
+
+You can include it in your projects as a dependency in rebar.config:
+#+BEGIN_SRC erlang
+  {deps, [%% ... Other dependencies
+         {urbandictionary, {git, "https://github.com/hyperimpose/urbandictionary.git", {branch, "master"}}}]}.
+#+END_SRC
+
+You can also quickly compile the library and start an Erlang shell for testing with: ~rebar3 shell~
+
+** License
+
+This implementation of json is licensed under the [[https://spdx.org/licenses/BSD-3-Clause.html][BSD 3-Clause "New" or "Revised" License]].
+A copy of this license is included in the file [[./COPYING][COPYING]].

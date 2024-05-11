@@ -1,0 +1,5 @@
+[{<<"json">>,
+  {git_subdir,"https://github.com/hyperimpose/miscellany.git",
+              {ref,"806cbd1a87c2b153f2b37c0f16d58a998cecfa35"},
+              "json"},
+  0}].

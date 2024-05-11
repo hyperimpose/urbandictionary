@@ -1,0 +1,10 @@
+{application, urbandictionary,
+ [{description, "urbandictionary.com API library"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib, inets]},
+  {env,[]},
+  {modules, [urbandictionary]},
+
+  {licenses, ["BSD 3-Clause"]}
+ ]}.
