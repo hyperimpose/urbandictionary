@@ -90,7 +90,7 @@ words_of_the_day(Opts) ->
                P when is_integer(P) -> integer_to_list(P);
                P                    -> P
            end,
-    U = ["https://api.urbandictionary.com/v0/words_of_the_day",
+    U = ["https://api.urbandictionary.com/v0/words_of_the_day?",
          uri_string:compose_query([{"page", Page}])],
     J = ?JSON(httpc:request(U)),
     map_get(<<"list">>, J).
