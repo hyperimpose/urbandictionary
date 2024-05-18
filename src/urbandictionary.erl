@@ -49,16 +49,26 @@ define(Query) -> define(Query, #{query => term}).
             -> [#{binary() => term()}].
 
 define(Query, Opts) ->
-    Type = case Opts of
-               #{query := term}  -> <<"term">>;
-               #{query := defid} -> <<"defid">>
-           end,
     Page = case maps:get(page, Opts, "1") of
                P when is_integer(P) -> integer_to_list(P);
                P                    -> P
            end,
+    case Opts of
+        #{query := term}  -> define_term(Query, Page);
+        #{query := defid} -> define_defid(Query, Page)
+    end.
 
-    Q = uri_string:compose_query([{Type, Query}, {"page", Page}]),
+define_term(Term, Page) ->
+    Q = uri_string:compose_query([{"term", Term}, {"page", Page}]),
+    J = ?JSON(httpc:request(["https://api.urbandictionary.com/v0/define?", Q])),
+    map_get(<<"list">>, J).
+
+define_defid(Query, Page) ->
+    Defid = if
+                is_integer(Query) -> integer_to_list(Query);
+                true              -> Query
+            end,
+    Q = uri_string:compose_query([{"defid", Defid}, {"page", Page}]),
     J = ?JSON(httpc:request(["https://api.urbandictionary.com/v0/define?", Q])),
     map_get(<<"list">>, J).
 
