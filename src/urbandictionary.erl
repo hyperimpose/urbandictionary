@@ -54,8 +54,8 @@ define(Query, Opts) ->
                P                    -> P
            end,
     case Opts of
-        #{query := term}  -> define_term(Query, Page);
-        #{query := defid} -> define_defid(Query, Page)
+        #{query := defid} -> define_defid(Query, Page);
+        _Else             -> define_term(Query, Page)
     end.
 
 define_term(Term, Page) ->
