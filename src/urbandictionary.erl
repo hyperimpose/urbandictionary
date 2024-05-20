@@ -1,5 +1,8 @@
 -module(urbandictionary).
 
+-include_lib("kernel/include/logger.hrl").
+
+
 -export([autocomplete/1, autocomplete/2,
          define/1, define/2,
          random/0,
@@ -102,5 +105,20 @@ words_of_the_day(Opts) ->
            end,
     U = ["https://api.urbandictionary.com/v0/words_of_the_day?",
          uri_string:compose_query([{"page", Page}])],
-    J = ?JSON(httpc:request(U)),
-    map_get(<<"list">>, J).
+    try
+        J = ?JSON(httpc:request(U)),
+        map_get(<<"list">>, J)
+    catch
+        error:{badmatch, {ok, {{"HTTP/1.1", 400, _}, _, _}} = E} ->
+            %% This usually happens when a page that does not exist is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 400 Bad Request",
+                       #{response => E, url => U}),
+            [];
+        error:{badmatch, {ok, {{"HTTP/1.1", 500, _}, _, _}} = E} ->
+            %% This usually happens when a page that does not exist is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 500 Internal Server Error",
+                       #{response => E, url => U}),
+            []
+    end.
