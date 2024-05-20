@@ -57,21 +57,37 @@ define(Query, Opts) ->
                P                    -> P
            end,
     case Opts of
-        #{query := defid} -> define_defid(Query, Page);
+        #{query := defid} -> define_defid(Query);
         _Else             -> define_term(Query, Page)
     end.
 
 define_term(Term, Page) ->
-    Q = uri_string:compose_query([{"term", Term}, {"page", Page}]),
-    J = ?JSON(httpc:request(["https://api.urbandictionary.com/v0/define?", Q])),
-    map_get(<<"list">>, J).
+    U = ["https://api.urbandictionary.com/v0/define?",
+         uri_string:compose_query([{"term", Term}, {"page", Page}])],
+    try
+        J = ?JSON(httpc:request(U)),
+        map_get(<<"list">>, J)
+    catch
+        error:{badmatch, {ok, {{"HTTP/1.1", 400, _}, _, _}} = E} ->
+            %% This usually happens when a page that does not exist is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 400 Bad Request",
+                       #{response => E, url => U}),
+            [];
+        error:{badmatch, {ok, {{"HTTP/1.1", 500, _}, _, _}} = E} ->
+            %% This usually happens when a page that does not exist is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 500 Internal Server Error",
+                       #{response => E, url => U}),
+            []
+    end.
 
-define_defid(Query, Page) ->
+define_defid(Query) ->
     Defid = if
                 is_integer(Query) -> integer_to_list(Query);
                 true              -> Query
             end,
-    Q = uri_string:compose_query([{"defid", Defid}, {"page", Page}]),
+    Q = uri_string:compose_query([{"defid", Defid}]),
     J = ?JSON(httpc:request(["https://api.urbandictionary.com/v0/define?", Q])),
     map_get(<<"list">>, J).
 
