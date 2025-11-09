@@ -10,6 +10,8 @@
 
 
 %%% Macros
+-define(HTTP_GET(Url), httpc:request(get, {Url, []}, [{timeout, 60_000}], [])).
+
 -define(JSON(Req), begin
                        {ok, {{_, 200, _}, _, Body}} = Req,
                        json:decode(unicode:characters_to_binary(Body))
@@ -29,13 +31,13 @@ autocomplete(Term) -> autocomplete(Term, #{extra => false}).
                   -> [binary()] | [#{binary() => binary()}].
 
 autocomplete(Term, #{extra := false}) ->
-    U = "https://api.urbandictionary.com/v0/autocomplete",
-    Q = uri_string:compose_query([{"term", Term}]),
-    ?JSON(httpc:request([U, "?", Q]));
+    U = ["https://api.urbandictionary.com/v0/autocomplete?",
+         uri_string:compose_query([{"term", Term}])],
+    ?JSON(?HTTP_GET(U));
 autocomplete(Term, #{extra := true}) ->
-    U = "https://api.urbandictionary.com/v0/autocomplete-extra",
-    Q = uri_string:compose_query([{"term", Term}]),
-    J = ?JSON(httpc:request([U, "?", Q])),
+    U = ["https://api.urbandictionary.com/v0/autocomplete-extra?",
+         uri_string:compose_query([{"term", Term}])],
+    J = ?JSON(?HTTP_GET(U)),
     map_get(<<"results">>, J).
 
 
@@ -65,7 +67,7 @@ define_term(Term, Page) ->
     U = ["https://api.urbandictionary.com/v0/define?",
          uri_string:compose_query([{"term", Term}, {"page", Page}])],
     try
-        J = ?JSON(httpc:request(U)),
+        J = ?JSON(?HTTP_GET(U)),
         map_get(<<"list">>, J)
     catch
         error:{badmatch, {ok, {{"HTTP/1.1", 400, _}, _, _}} = E} ->
@@ -90,7 +92,7 @@ define_defid(Query) ->
     Q = uri_string:compose_query([{"defid", Defid}]),
     U = ["https://api.urbandictionary.com/v0/define?", Q],
     try
-        J = ?JSON(httpc:request(U)),
+        J = ?JSON(?HTTP_GET(U)),
         map_get(<<"list">>, J)
     catch
         error:{badmatch, {ok, {{"HTTP/1.1", 404, _}, _, _}} = E} ->
@@ -115,7 +117,7 @@ define_defid(Query) ->
 -spec random() -> [#{binary() => term()}].
 
 random() ->
-    J = ?JSON(httpc:request("https://api.urbandictionary.com/v0/random")),
+    J = ?JSON(?HTTP_GET("https://api.urbandictionary.com/v0/random")),
     map_get(<<"list">>, J).
 
 
@@ -138,7 +140,7 @@ words_of_the_day(Opts) ->
     U = ["https://api.urbandictionary.com/v0/words_of_the_day?",
          uri_string:compose_query([{"page", Page}])],
     try
-        J = ?JSON(httpc:request(U)),
+        J = ?JSON(?HTTP_GET(U)),
         map_get(<<"list">>, J)
     catch
         error:{badmatch, {ok, {{"HTTP/1.1", 400, _}, _, _}} = E} ->
