@@ -12,7 +12,7 @@
 %%% Macros
 -define(JSON(Req), begin
                        {ok, {{_, 200, _}, _, Body}} = Req,
-                       djson:decode(unicode:characters_to_binary(Body))
+                       json:decode(unicode:characters_to_binary(Body))
                    end).
 
 
