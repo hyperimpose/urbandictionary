@@ -88,8 +88,24 @@ define_defid(Query) ->
                 true              -> Query
             end,
     Q = uri_string:compose_query([{"defid", Defid}]),
-    J = ?JSON(httpc:request(["https://api.urbandictionary.com/v0/define?", Q])),
-    map_get(<<"list">>, J).
+    U = ["https://api.urbandictionary.com/v0/define?", Q],
+    try
+        J = ?JSON(httpc:request(U)),
+        map_get(<<"list">>, J)
+    catch
+        error:{badmatch, {ok, {{"HTTP/1.1", 404, _}, _, _}} = E} ->
+            %% This usually happens when an id that does not exist is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 404 Not Found",
+                       #{response => E, url => U}),
+            [];
+        error:{badmatch, {ok, {{"HTTP/1.1", 422, _}, _, _}} = E} ->
+            %% This usually happens when a non integer query is given.
+            %% For better API we just return an empty list.
+            ?LOG_DEBUG("[urbandictionary] 422 Unprocessable Content",
+                       #{response => E, url => U}),
+            []
+    end.
 
 
 %%%===================================================================
